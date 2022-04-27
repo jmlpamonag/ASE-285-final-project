@@ -11,7 +11,7 @@ const MongoClient = require('mongodb').MongoClient;
 var db;
 MongoClient.connect(process.env.MONGO_URI, { useUnifiedTopology: true }, function (error, client) {
     if (error) return console.log(error)
-    db = client.db('test');
+    db = client.db('toyproject');
 });
 
 // ==================================
