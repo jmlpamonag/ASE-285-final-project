@@ -1,4 +1,6 @@
 # ASE-285-final-project
 
-### Features
+### Installation 
+
+npm install
     
