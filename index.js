@@ -88,20 +88,12 @@ app.listen(5500, function () {
 
 // root -> defaults to the log-in page (modified from default route)
 app.get('/', checkNotAuthenthicated, function (req, resp) {
-    resp.render('log-in.ejs', {
-        name: '',
-        email: '',
-        password: ''
-    });
+    resp.render('log-in.ejs');
 });
 
 // GET: Login
 app.get('/login', checkNotAuthenthicated, function (req, resp) {
-    resp.render('log-in.ejs', {
-        name: '',
-        email: '',
-        password: ''
-    });
+    resp.render('log-in.ejs');
 });
 
 // POST: Login
@@ -118,12 +110,7 @@ app.get('/home', checkAuthenthicated, function (req, res) {
 
 // GET: Register
 app.get('/register', checkNotAuthenthicated, function (req, res) {
-    res.render('register', {
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: ''
-    })
+    res.render('register.ejs')
 });
 
 // POST: Register
@@ -153,7 +140,7 @@ app.post('/register', checkNotAuthenthicated, async function (req, resp) {
                     if (error) { return console.log(error) }
 
                     req.flash("success", "You have been registered! Please log-in");
-                    resp.redirect("/login")
+                    resp.status(200).redirect("/login")
                 })
             })
         })
@@ -166,7 +153,7 @@ app.post('/register', checkNotAuthenthicated, async function (req, resp) {
 
 app.delete('/logout', (req, res) => {
     req.logOut()
-    res.redirect('/login')
+    res.status(200).redirect('/login')
 })
 
 app.delete('/unregister', (req, res) => {
@@ -177,7 +164,7 @@ app.delete('/unregister', (req, res) => {
     db.collection('user').updateOne({ _id: userId }, { $set: { status: status.unregistered } }, function (error, resp) {
         if (error) { return console.log(error) }
         req.logOut()
-        res.redirect('/login')
+        res.status(200).redirect('/login')
     })
 })
 // ==================================
@@ -335,7 +322,7 @@ app.put('/edit', checkAuthenthicated, function (req, resp) {
 
 
 // ==================================
-// BEGIN - ROUTES - gainesd2
+// BEGIN - ROUTES - GAINES
 // ==================================
 
 // * GET
@@ -383,31 +370,36 @@ app.use((err, req, res, next) => {
     }
 });
 // ==================================
-// END - ROUTES - gainesd2
+// END - ROUTES - GAINES
 // ==================================
 
 // ==================================
-// START - FUNCTIONS
+// START - FUNCTIONS - PAMONAG
 // ==================================
+
 function checkAuthenthicated(req, res, next) {
     if (req.isAuthenticated()) {
         return next()
     }
 
-    res.redirect('/login')
+    req.flash("alert", "Please log in to acess this feature.")
+    res.status(400).redirect('/login')
 }
 
 function checkNotAuthenthicated(req, res, next) {
     if (req.isAuthenticated()) {
-        return res.redirect('/home')
+        return res.status(400).redirect('/home')
     }
 
     next()
 }
 // ==================================
-// END - FUNCTIONS
+// END - FUNCTIONS - PAMONAG
 // ==================================
 
+// ==================================
+// START - ROUTES - HOANG
+// ==================================
 
 let pdf = require("html-pdf");
 let path = require("path");
@@ -503,3 +495,7 @@ let ejs = require("ejs")
         })
 
 })
+
+// ==================================
+// END - ROUTES - HOANG
+// ==================================

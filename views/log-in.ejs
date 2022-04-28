@@ -31,17 +31,22 @@
                                     <h3 class="mb-3 text-center">Sign In</h3>
                                     <p class="lead text-center">Sign into an existing account, or <a class="inline-link"
                                             href="/register">register a new one</a>.</p>
+
+                                     <!-- alert messages        -->
                                     <% if (messages.error) { %>
                                     <div class="alert alert-danger" role="alert">
                                             <%= messages.error %>
                                     </div>
+                                    <% } else if(messages.success) { %>
+                                    <div class="alert alert-success" role="alert">
+                                        <%= messages.success %>
+                                    </div>
+                                    <% } else if(messages.alert) { %>
+                                    <div class="alert alert-warning" role="alert">
+                                        <%= messages.alert %>
+                                    </div>
                                     <% } %>
 
-                                    <% if (messages.success) { %>
-                                        <div class="alert alert-success" role="alert">
-                                                <%= messages.success %>
-                                        </div>
-                                        <% } %>
                                     <form action="/login" method="post" name="form1">
                                         <div class="row">
                                             <!-- email  -->
@@ -53,7 +58,7 @@
                                                 </div>
                                             </div>
 
-                                            <!-- subject -->
+                                            <!-- password -->
                                             <div class="col-md-12">
                                                 <div class="form-group">
                                                     <label for="exampleInputEmail1">Password</label>
