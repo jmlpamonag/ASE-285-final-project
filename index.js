@@ -55,6 +55,7 @@ const bodyParser = require('body-parser')
 const methodOverride = require('method-override')
 
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json())
 app.use(express.urlencoded({ extended: true }))
 app.set('view engine', 'ejs');
 app.use('/public', express.static('public'));
@@ -339,7 +340,7 @@ app.put('/edit', checkAuthenthicated, function(req, resp) {
 
 // * GET
 // load updated todo list
-app.get("/todo", (req, resp) => {
+app.get("/todo", checkAuthenthicated, (req, resp) => {
     db.collection('post').find().toArray(function(error, res) {
         resp.render('todo.ejs', { posts: res });
     });
@@ -347,7 +348,7 @@ app.get("/todo", (req, resp) => {
 
 //* PUT
 // check off a task as completed
-app.put("/todo", (req, resp) => {
+app.put("/todo", checkAuthenthicated,  (req, resp) => {
     db.collection('post').updateOne({ _id: parseInt(req.body.id) }, {
         $set: {
             status: req.body.val
