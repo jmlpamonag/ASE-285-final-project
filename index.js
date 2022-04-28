@@ -244,6 +244,14 @@ app.get('/list', checkAuthenthicated, function(req, resp) {
     });
 });
 
+app.get('/list/:groupname', checkAuthenthicated, function(req, resp){
+    console.log(req.params)
+    db.collection('post').find({"groupname" : req.params.groupname}).toArray(function(error, res){
+        console.log(res)
+        resp.render('list.ejs', { posts: res })
+    })
+});
+
 app.delete('/delete', checkAuthenthicated, function(req, resp) {
     req.body._id = parseInt(req.body._id); // the body._id is stored in string, so change it into an int value
     console.log(req.body._id);
