@@ -1,0 +1,39 @@
+.taskList-item {
+    border: 1px solid rgba(0, 0, 0, .125);
+    background-color: white;
+}
+
+.taskList-item:hover {
+    background-color: #f1f3f4;
+}
+
+body {
+    background-color: #f8f9fa;
+}
+
+.doneTask {
+    border: 1px solid rgba(0, 0, 0, .125);
+    background-color: #f1f3f4;
+}
+
+.doneTask:hover {
+    background-color: #eaeced;
+}
+
+hr {
+    background-color: #ffffff00;
+}
+
+hr.position-relative {
+    z-index: 40;
+    top: 0.9rem;
+    opacity: 1;
+    padding: 0.05rem;
+}
+
+.doneTask>a>hr {
+    background-color: currentColor;
+}
+.doneTask>* {
+    color: grey;
+}
