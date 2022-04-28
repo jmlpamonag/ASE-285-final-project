@@ -407,3 +407,99 @@ function checkNotAuthenthicated(req, res, next) {
 // ==================================
 // END - FUNCTIONS
 // ==================================
+
+
+let pdf = require("html-pdf");
+let path = require("path");
+let ejs = require("ejs")
+
+ app.get("/topdf", (req, res) => {
+
+    height = req.params.height
+    height = req.params.weight
+    db.collection('post').find().toArray(function (error, posts) {
+
+     ejs.renderFile(path.join(__dirname, './views/', "downloadpdf.ejs"), posts, (err, data) => {
+     if (err) {
+           res.send(err);
+     } else {
+         let options = {
+             "height": `11.25in`,
+             "width": `8.5in`,
+             "header": {
+                 "height": "20mm"
+             },
+             "footer": {
+                 "height": "20mm",
+             },
+         };
+         pdf.create(data, options).toFile("report.pdf", function (err, data) {
+             if (err) {
+                 res.send(err);
+             } else {
+                 res.sendFile(__dirname+ "/report.pdf");
+             }
+         });
+     }
+     console.log(posts);
+ })
+})
+ })
+ //test api route
+ app.get("/testtopdf", (req, res) => {
+
+    let posts = [
+        {
+            title:"something",
+            title:"date",
+            title:"description"
+        },
+        {
+            title:"something",
+            title:"date",
+            title:"description"
+        },
+        {
+            title:"something",
+            title:"date",
+            title:"description"
+        }
+    ]
+
+     ejs.renderFile(path.join(__dirname, './views/', "downloadpdf.ejs"), posts, (err, data) => {
+     if (err) {
+           res.send(err);
+     } else {
+         let options = {
+             "height": `11.25in`,
+             "width": `$8.5in`,
+             "header": {
+                 "height": "20mm"
+             },
+             "footer": {
+                 "height": "20mm",
+             },
+         };
+         pdf.create(data, options).toFile("report.pdf", function (err, data) {
+             if (err) {
+                 res.send(err);
+             } else {
+                 res.sendFile(__dirname+ "/report.pdf");
+             }
+         });
+     }
+     console.log(posts);
+
+})
+ })
+ 
+
+ app.get("/tomd", (req, res) => {
+
+    db.collection('post').find().toArray(function (error, posts) {
+        console.log(posts)
+        res.render("downloadmd.ejs",{posts:posts})
+    
+        })
+
+})
