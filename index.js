@@ -399,99 +399,77 @@ function checkNotAuthenthicated(req, res, next) {
 // START - ROUTES - HOANG
 // ==================================
 
-let pdf = require("html-pdf");
-let path = require("path");
-let ejs = require("ejs")
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
 
-app.get("/topdf", (req, res) => {
+app.get("/topdf", checkAuthenthicated,(req, res) => {
+    db.collection('post').find().toArray(function (error, resp) {
 
-    height = req.params.height
-    height = req.params.weight
-    db.collection('post').find().toArray(function (error, posts) {
+        const doc = new PDFDocument;
 
-        ejs.renderFile(path.join(__dirname, './views/', "downloadpdf.ejs"), posts, (err, data) => {
-            if (err) {
-                res.send(err);
-            } else {
-                let options = {
-                    "height": `11.25in`,
-                    "width": `8.5in`,
-                    "header": {
-                        "height": "20mm"
-                    },
-                    "footer": {
-                        "height": "20mm",
-                    },
-                };
-                pdf.create(data, options).toFile("report.pdf", function (err, data) {
-                    if (err) {
-                        res.send(err);
-                    } else {
-                        res.sendFile(__dirname + "/report.pdf");
-                    }
-                });
-            }
-            console.log(posts);
+        writeStream = fs.createWriteStream("createdFiles/download.pdf")
+        doc.pipe(writeStream);
+        for (var i = 0; i < resp.length; i++) {
+            doc.fontSize(10).text(resp[i].title)
+            doc.fontSize(10).text(resp[i].date)
+            doc.fontSize(10).text(resp[i].description)
+        }
+        doc.end()
+        writeStream.on('finish', function () {
+            res.download(__dirname + "/createdFiles/download.pdf")
+        })
+
+    })
+})
+app.get("/topdf/:fontSize/:paperSize", checkAuthenthicated,(req, res) => {
+        fontSize = parseInt(req.params.fontSize);
+        paperSize = req.params.paperSize;
+        if(fontSize<10)fontSize = 14;
+        if(fontSize>80)fontSize = 80;
+        if(!['A3','A4','A5','A6','A7'].includes(paperSize))paperSize ='A4';
+    db.collection('post').find().toArray(function (error, resp) {
+        
+        const doc = new PDFDocument({size: `${paperSize}`});
+
+        writeStream = fs.createWriteStream("createdFiles/download.pdf")//file will be overwritten
+        doc.pipe(writeStream);
+        doc.fontSize(fontSize+10).text("To-do List")
+        doc.moveDown();
+        for (var i = 0; i < resp.length; i++) {
+            doc.fontSize(fontSize+5).text(resp[i].title)
+            doc.fontSize(fontSize-2).text(resp[i].date);
+            doc.fontSize(fontSize+2).text(resp[i].description);
+            doc.moveDown()
+
+        }
+        doc.end()
+        writeStream.on('finish', function () {
+            res.sendFile(__dirname + "/createdFiles/download.pdf")
+        })
+
+    })
+})
+app.get("/download", checkAuthenthicated,(req, res) => {
+    db.collection('post').find().toArray(function (error, resp) {
+        res.render('download.ejs', { posts: resp })
+    })
+})
+
+app.get("/tomd/download",checkAuthenthicated, (req, res) => {
+    db.collection('post').find().toArray(function (error, resp) {
+        var file = fs.createWriteStream("createdFiles/download.md");//file will be overwritten
+        file.write("# **To-do List**\r\n\n")
+        for (var i = 0; i < resp.length; i++) {
+            console.log(resp[i])
+            file.write(`## **${i+1}. `+resp[i].title+ "**\r\n")
+            file.write(resp[i].date+"\r\n")
+            file.write(resp[i].description+"\r\n\n")
+        }
+        file.close()
+        file.on('finish', function () {
+            res.download(__dirname + "/createdFiles/download.md")
         })
     })
-})
-//test api route
-app.get("/testtopdf", (req, res) => {
-
-    let posts = [
-        {
-            title: "something",
-            title: "date",
-            title: "description"
-        },
-        {
-            title: "something",
-            title: "date",
-            title: "description"
-        },
-        {
-            title: "something",
-            title: "date",
-            title: "description"
-        }
-    ]
-
-    ejs.renderFile(path.join(__dirname, './views/', "downloadpdf.ejs"), posts, (err, data) => {
-        if (err) {
-            res.send(err);
-        } else {
-            let options = {
-                "height": `11.25in`,
-                "width": `$8.5in`,
-                "header": {
-                    "height": "20mm"
-                },
-                "footer": {
-                    "height": "20mm",
-                },
-            };
-            pdf.create(data, options).toFile("report.pdf", function (err, data) {
-                if (err) {
-                    res.send(err);
-                } else {
-                    res.sendFile(__dirname + "/report.pdf");
-                }
-            });
-        }
-        console.log(posts);
-
-    })
-})
-
-
-app.get("/tomd", (req, res) => {
-
-    db.collection('post').find().toArray(function (error, posts) {
-        console.log(posts)
-        res.render("downloadmd.ejs", { posts: posts })
-
-    })
-
 })
 
 // ==================================
