@@ -29,9 +29,6 @@
   "devDependencies": {
     "@shelf/jest-mongodb": "^2.2.2",
     "supertest": "^6.2.3"
-  },
-  "jest": {
-    "preset": "@shelf/jest-mongodb"
   }
   
 }

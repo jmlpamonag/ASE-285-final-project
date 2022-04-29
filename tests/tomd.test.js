@@ -45,7 +45,7 @@ router.get("/topdf/:fontSize/:paperSize",  (req, res) => {
 
         const doc = new PDFDocument({ size: `${paperSize}` });
 
-        writeStream = fs.createWriteStream("createdFiles/download.pdf")//file will be overwritten
+        writeStream = fs.createWriteStream(__dirname + "/testFiles/download.pdf")//file will be overwritten
         doc.pipe(writeStream);
         doc.fontSize(fontSize + 10).text("To-do List")
         doc.moveDown();
@@ -58,7 +58,7 @@ router.get("/topdf/:fontSize/:paperSize",  (req, res) => {
         }
         doc.end()
         writeStream.on('finish', function () {
-            res.send(200).sendFile(__dirname + "/createdFiles/download.pdf")
+            res.send(200).sendFile(__dirname + "/testFiles/download.pdf")
         })
 
     })
@@ -83,7 +83,7 @@ router.get("/topdf", (req, res) => {
 
         const doc = new PDFDocument;
 
-        writeStream = fs.createWriteStream("download.pdf")
+        writeStream = fs.createWriteStream(__dirname + "/testFiles/download.pdf")
         doc.pipe(writeStream);
         for (var i = 0; i < resp.length; i++) {
             doc.fontSize(10).text(resp[i].title)
@@ -92,7 +92,7 @@ router.get("/topdf", (req, res) => {
         }
         doc.end()
         writeStream.on('finish', function () {
-            res.send(200).download(__dirname + "download.pdf")
+            res.send(200).download(__dirname + "/testFiles/download.pdf")
         })
 
     })
@@ -119,7 +119,7 @@ describe('Download', () => {
     it('Downloads a Markdown file', async () => {
         const res = await request(app).get('/topdf/16/A4');
         expect(res.statusCode).toEqual(200);
-        expect(fs.existsSync(__dirname + "/testFiles/download.md"))
+        expect(fs.existsSync(__dirname + "/testFiles/download.pdf"))
     })
 });
 

@@ -416,18 +416,18 @@ app.get("/topdf", checkAuthenthicated,(req, res) => {
         }
         doc.end()
         writeStream.on('finish', function () {
-            res.send(200).download(__dirname + "/createdFiles/download.pdf")
+            res.download(__dirname + "/createdFiles/download.pdf")
         })
 
     })
 })
-app.get("/topdf/:fontSize/:paperSize", checkAuthenthicated,(req, res) => {
+app.get("/topdf/:fontSize/:paperSize", checkAuthenthicated,(req, resp) => {
         fontSize = parseInt(req.params.fontSize);
         paperSize = req.params.paperSize;
         if(fontSize<10)fontSize = 14;
         if(fontSize>80)fontSize = 80;
         if(!['A3','A4','A5','A6','A7'].includes(paperSize))paperSize ='A4';
-    db.collection('post').find().toArray(function (error, resp) {
+    db.collection('post').find().toArray(function (error, res) {
         
         const doc = new PDFDocument({size: `${paperSize}`});
 
@@ -435,45 +435,45 @@ app.get("/topdf/:fontSize/:paperSize", checkAuthenthicated,(req, res) => {
         doc.pipe(writeStream);
         doc.fontSize(fontSize+10).text("To-do List")
         doc.moveDown();
-        for (var i = 0; i < resp.length; i++) {
-            doc.fontSize(fontSize+5).text(resp[i].title)
-            doc.fontSize(fontSize-2).text(resp[i].date);
-            doc.fontSize(fontSize+2).text(resp[i].description);
+        for (var i = 0; i < res.length; i++) {
+            doc.fontSize(fontSize+5).text(res[i].title)
+            doc.fontSize(fontSize-2).text(res[i].date);
+            doc.fontSize(fontSize+2).text(res[i].description);
             doc.moveDown()
 
         }
         doc.end()
         writeStream.on('finish', function () {
-            res.send(200).sendFile(__dirname + "/createdFiles/download.pdf")
+            resp.sendFile(__dirname + "/createdFiles/download.pdf")
         })
 
     })
 })
-app.get("/download", checkAuthenthicated,(req, res) => {
-    db.collection('post').find().toArray(function (error, resp) {
-        res.send(200).render('download.ejs', { posts: resp })
+app.get("/download", checkAuthenthicated,(req, resp) => {
+    db.collection('post').find().toArray(function (error, res) {
+            console.log(res)
+            resp.render('download.ejs', { posts: res })
+
     })
 })
 
-app.get("/tomd/download",checkAuthenthicated, (req, res) => {
-    db.collection('post').find().toArray(function (error, resp) {
+app.get("/tomd/download",checkAuthenthicated, (req, resp) => {
+    db.collection('post').find().toArray(function (error, ress) {
         var file = fs.createWriteStream("createdFiles/download.md");//file will be overwritten
         file.write("# **To-do List**\r\n\n")
         for (var i = 0; i < resp.length; i++) {
-            console.log(resp[i])
+            console.log(res[i])
             file.write(`## **${i+1}. `+resp[i].title+ "**\r\n")
-            file.write(resp[i].date+"\r\n")
-            file.write(resp[i].description+"\r\n\n")
+            file.write(res[i].date+"\r\n")
+            file.write(res[i].description+"\r\n\n")
         }
         file.close()
         file.on('finish', function () {
-            res.send(200).download(__dirname + "/createdFiles/download.md")
+            resp.download(__dirname + "/createdFiles/download.md")
         })
     })
 })
-app.get("/testDownload"), (req,res)=>{
-    
-}
+
 
 // ==================================
 // END - ROUTES - HOANG
