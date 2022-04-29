@@ -403,7 +403,8 @@ const PDFDocument = require("pdfkit");
 const fs = require("fs");
 
 app.get("/topdf", checkAuthenthicated,(req, res) => {
-    db.collection('post').find().toArray(function (error, resp) {
+    try
+    {db.collection('post').find().toArray(function (error, resp) {
 
         const doc = new PDFDocument;
 
@@ -419,9 +420,11 @@ app.get("/topdf", checkAuthenthicated,(req, res) => {
             res.download(__dirname + "/createdFiles/download.pdf")
         })
 
-    })
+    })}
+    catch(err){console.log(error);resp.sendStatus(404)}
 })
 app.get("/topdf/:fontSize/:paperSize", checkAuthenthicated,(req, resp) => {
+    try{
         fontSize = parseInt(req.params.fontSize);
         paperSize = req.params.paperSize;
         if(fontSize<10)fontSize = 14;
@@ -447,7 +450,8 @@ app.get("/topdf/:fontSize/:paperSize", checkAuthenthicated,(req, resp) => {
             resp.sendFile(__dirname + "/createdFiles/download.pdf")
         })
 
-    })
+    })}
+    catch(err){console.log(error);resp.sendStatus(404)}
 })
 app.get("/download", checkAuthenthicated,(req, resp) => {
     db.collection('post').find().toArray(function (error, res) {
@@ -458,6 +462,7 @@ app.get("/download", checkAuthenthicated,(req, resp) => {
 })
 
 app.get("/tomd/download",checkAuthenthicated, (req, resp) => {
+    try{
     db.collection('post').find().toArray(function (error, ress) {
         var file = fs.createWriteStream("createdFiles/download.md");//file will be overwritten
         file.write("# **To-do List**\r\n\n")
@@ -471,7 +476,8 @@ app.get("/tomd/download",checkAuthenthicated, (req, resp) => {
         file.on('finish', function () {
             resp.download(__dirname + "/createdFiles/download.md")
         })
-    })
+    })}
+    catch(err){console.log(error);resp.sendStatus(404)}
 })
 
 
