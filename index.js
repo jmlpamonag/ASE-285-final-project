@@ -1,5 +1,3 @@
-// npm install -> npm install -g nodemon -> npm start
-
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config()
 }
@@ -34,12 +32,14 @@ const status = {
 // START - CONFIG
 // ==================================
 
-// -> start
 const bcrypt = require('bcrypt');
 const passport = require('passport');
 const flash = require('express-flash')
 const session = require('express-session')
-
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser')
+const methodOverride = require('method-override')
 const initializePassport = require('./passport-config')
 
 initializePassport
@@ -47,12 +47,8 @@ initializePassport
         (em) => { return db.collection('user').findOne({ email: em, status: status.registered }).then(result => { return result; }) },
         (i) => { return db.collection('user').findOne({ _id: i, status: status.registered }).then(result => { return result; }) }
     );
-// -> end
 
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser')
-const methodOverride = require('method-override')
+
 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
@@ -61,7 +57,6 @@ app.set('view engine', 'ejs');
 app.use('/public', express.static('public'));
 app.use(methodOverride('_method'))
 
-// -> start
 app.use(flash())
 app.use(session({
     secret: process.env.SESSION_SECRET,
@@ -69,10 +64,10 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false }
 }))
+
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(methodOverride('_method'))
-// -> end
 
 app.listen(5500, function () {
     console.log('listening on 5500')
@@ -86,66 +81,66 @@ app.listen(5500, function () {
 // START - ROUTES - PAMONAG
 // ==================================
 
-// root -> defaults to the log-in page (modified from default route)
 app.get('/', checkNotAuthenthicated, function (req, resp) {
     resp.render('log-in.ejs');
 });
 
-// GET: Login
 app.get('/login', checkNotAuthenthicated, function (req, resp) {
     resp.render('log-in.ejs');
 });
 
-// POST: Login
 app.post('/login', checkNotAuthenthicated, passport.authenticate('local', {
     successRedirect: '/home',
     failureRedirect: '/login',
     failureFlash: true
 
 }))
-// GET: Home
+
 app.get('/home', checkAuthenthicated, function (req, res) {
     res.render('home.ejs', { firstName: req.user?.firstName, lastName: req.user?.lastName, email: req.user?.email });
 })
 
-// GET: Register
 app.get('/register', checkNotAuthenthicated, function (req, res) {
     res.render('register.ejs')
 });
 
-// POST: Register
 app.post('/register', checkNotAuthenthicated, async function (req, resp) {
 
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10)
 
-        db.collection('usercount').findOne({ name: 'Total User' }, function (error, data) {
+        db.collection('user').findOne({ email: req.body.email, status: status.registered  }).then(result => {
+            if (result) {
+                req.flash("alert", "A user account is already connected to this email. Please choose another email.")
+                return resp.status(400).redirect('/register')
+            } else {
+                db.collection('usercount').findOne({ name: 'Total User' }, function (error, data) {
 
-            var totalUser = data.totalUser
+                    var totalUser = data.totalUser
 
-            db.collection('user').insertOne({
-                _id: totalUser + 1,
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                email: req.body.email,
-                password: hashedPassword,
-                status: status.registered
-            }, function (error, data) {
-                if (error) {
-                    console.log(error)
-                    resp.redirect('/register')
-                }
+                    db.collection('user').insertOne({
+                        _id: totalUser + 1,
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        email: req.body.email,
+                        password: hashedPassword,
+                        status: status.registered
+                    }, function (error, data) {
+                        if (error) {
+                            console.log(error)
+                            resp.redirect('/register')
+                        }
 
-                db.collection('usercount').updateOne({ name: 'Total User' }, { $inc: { totalUser: 1 } }, function (error, data) {
-                    if (error) { return console.log(error) }
+                        db.collection('usercount').updateOne({ name: 'Total User' }, { $inc: { totalUser: 1 } }, function (error, data) {
+                            if (error) { return console.log(error) }
 
-                    req.flash("success", "You have been registered! Please log-in");
-                    resp.status(200).redirect("/login")
+                            req.flash("success", "You have been registered! Please log-in");
+                            resp.status(200).redirect("/login")
+                        })
+                    })
                 })
-            })
+            }
         })
-
-
     } catch (e) {
         console.log(e)
     }
@@ -153,6 +148,7 @@ app.post('/register', checkNotAuthenthicated, async function (req, resp) {
 
 app.delete('/logout', (req, res) => {
     req.logOut()
+    req.flash("success", "You are now logged out.")
     res.status(200).redirect('/login')
 })
 
@@ -164,9 +160,11 @@ app.delete('/unregister', (req, res) => {
     db.collection('user').updateOne({ _id: userId }, { $set: { status: status.unregistered } }, function (error, resp) {
         if (error) { return console.log(error) }
         req.logOut()
+        req.flash("alert", "You account is now unregistered.")
         res.status(200).redirect('/login')
     })
 })
+
 // ==================================
 // END - ROUTES - PAMONAG
 // ==================================
@@ -405,94 +403,94 @@ let pdf = require("html-pdf");
 let path = require("path");
 let ejs = require("ejs")
 
- app.get("/topdf", (req, res) => {
+app.get("/topdf", (req, res) => {
 
     height = req.params.height
     height = req.params.weight
     db.collection('post').find().toArray(function (error, posts) {
 
-     ejs.renderFile(path.join(__dirname, './views/', "downloadpdf.ejs"), posts, (err, data) => {
-     if (err) {
-           res.send(err);
-     } else {
-         let options = {
-             "height": `11.25in`,
-             "width": `8.5in`,
-             "header": {
-                 "height": "20mm"
-             },
-             "footer": {
-                 "height": "20mm",
-             },
-         };
-         pdf.create(data, options).toFile("report.pdf", function (err, data) {
-             if (err) {
-                 res.send(err);
-             } else {
-                 res.sendFile(__dirname+ "/report.pdf");
-             }
-         });
-     }
-     console.log(posts);
- })
+        ejs.renderFile(path.join(__dirname, './views/', "downloadpdf.ejs"), posts, (err, data) => {
+            if (err) {
+                res.send(err);
+            } else {
+                let options = {
+                    "height": `11.25in`,
+                    "width": `8.5in`,
+                    "header": {
+                        "height": "20mm"
+                    },
+                    "footer": {
+                        "height": "20mm",
+                    },
+                };
+                pdf.create(data, options).toFile("report.pdf", function (err, data) {
+                    if (err) {
+                        res.send(err);
+                    } else {
+                        res.sendFile(__dirname + "/report.pdf");
+                    }
+                });
+            }
+            console.log(posts);
+        })
+    })
 })
- })
- //test api route
- app.get("/testtopdf", (req, res) => {
+//test api route
+app.get("/testtopdf", (req, res) => {
 
     let posts = [
         {
-            title:"something",
-            title:"date",
-            title:"description"
+            title: "something",
+            title: "date",
+            title: "description"
         },
         {
-            title:"something",
-            title:"date",
-            title:"description"
+            title: "something",
+            title: "date",
+            title: "description"
         },
         {
-            title:"something",
-            title:"date",
-            title:"description"
+            title: "something",
+            title: "date",
+            title: "description"
         }
     ]
 
-     ejs.renderFile(path.join(__dirname, './views/', "downloadpdf.ejs"), posts, (err, data) => {
-     if (err) {
-           res.send(err);
-     } else {
-         let options = {
-             "height": `11.25in`,
-             "width": `$8.5in`,
-             "header": {
-                 "height": "20mm"
-             },
-             "footer": {
-                 "height": "20mm",
-             },
-         };
-         pdf.create(data, options).toFile("report.pdf", function (err, data) {
-             if (err) {
-                 res.send(err);
-             } else {
-                 res.sendFile(__dirname+ "/report.pdf");
-             }
-         });
-     }
-     console.log(posts);
+    ejs.renderFile(path.join(__dirname, './views/', "downloadpdf.ejs"), posts, (err, data) => {
+        if (err) {
+            res.send(err);
+        } else {
+            let options = {
+                "height": `11.25in`,
+                "width": `$8.5in`,
+                "header": {
+                    "height": "20mm"
+                },
+                "footer": {
+                    "height": "20mm",
+                },
+            };
+            pdf.create(data, options).toFile("report.pdf", function (err, data) {
+                if (err) {
+                    res.send(err);
+                } else {
+                    res.sendFile(__dirname + "/report.pdf");
+                }
+            });
+        }
+        console.log(posts);
 
+    })
 })
- })
- 
 
- app.get("/tomd", (req, res) => {
+
+app.get("/tomd", (req, res) => {
 
     db.collection('post').find().toArray(function (error, posts) {
         console.log(posts)
-        res.render("downloadmd.ejs",{posts:posts})
-    
-        })
+        res.render("downloadmd.ejs", { posts: posts })
+
+    })
 
 })
 

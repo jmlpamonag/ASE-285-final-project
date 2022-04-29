@@ -29,6 +29,11 @@
                             <div class="d-flex col-md-12 align-items-stretch">
                                 <div class="w-100 p-md-5 p-4">
                                     <h3 class="mb-3 text-center">Create an Account</h3>
+                                    <% if(messages.alert) { %>
+                                        <div class="alert alert-warning" role="alert">
+                                            <%= messages.alert %>
+                                        </div>
+                                    <% } %>
                                     <form action="/register" method="post" name="form1">
                                         <div class="row">
                                             <!-- name -->
