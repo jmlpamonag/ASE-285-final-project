@@ -416,7 +416,7 @@ app.get("/topdf", checkAuthenthicated,(req, res) => {
         }
         doc.end()
         writeStream.on('finish', function () {
-            res.download(__dirname + "/createdFiles/download.pdf")
+            res.send(200).download(__dirname + "/createdFiles/download.pdf")
         })
 
     })
@@ -444,14 +444,14 @@ app.get("/topdf/:fontSize/:paperSize", checkAuthenthicated,(req, res) => {
         }
         doc.end()
         writeStream.on('finish', function () {
-            res.sendFile(__dirname + "/createdFiles/download.pdf")
+            res.send(200).sendFile(__dirname + "/createdFiles/download.pdf")
         })
 
     })
 })
 app.get("/download", checkAuthenthicated,(req, res) => {
     db.collection('post').find().toArray(function (error, resp) {
-        res.render('download.ejs', { posts: resp })
+        res.send(200).render('download.ejs', { posts: resp })
     })
 })
 
@@ -467,10 +467,13 @@ app.get("/tomd/download",checkAuthenthicated, (req, res) => {
         }
         file.close()
         file.on('finish', function () {
-            res.download(__dirname + "/createdFiles/download.md")
+            res.send(200).download(__dirname + "/createdFiles/download.md")
         })
     })
 })
+app.get("/testDownload"), (req,res)=>{
+    
+}
 
 // ==================================
 // END - ROUTES - HOANG
