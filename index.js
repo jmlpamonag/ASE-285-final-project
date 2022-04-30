@@ -334,19 +334,27 @@ app.get("/todo", checkAuthenthicated, (req, resp) => {
 //* PUT
 // check off a task as completed
 app.put("/todo", checkAuthenthicated, (req, resp) => {
-    db.collection('post').updateOne({ _id: parseInt(req.body.id) }, {
-        $set: {
-            status: req.body.val
+    if (req.body.val == false || req.body.val == true) {
+        resp.json({ "message": "Invalid val" });
+    }else {
+        try {
+            db.collection('post').updateOne({ _id: parseInt(req.body.id) }, {
+                $set: {
+                    status: req.body.val
+                }
+            }, function (error, result) {
+                if (error || result.matchedCount == 0) {
+                    console.log(error);
+                    console.log(result);
+                    resp.json({ "message": "No updates made" });
+                } else {
+                    resp.json({ "message": "Records Updated" });
+                }
+            });
+        } catch (err) {
+            resp.json({ "message": "No updates made, Bad Request" });
         }
-    }, function (error, result) {
-        if (error || result.matchedCount == 0) {
-            console.log(error);
-            console.log(result);
-            resp.json({ "message": "No updates made" });
-        } else {
-            resp.json({ "message": "Records Updated" });
-        }
-    });
+    }
 });
 
 // redirects user if database is having trouble loading

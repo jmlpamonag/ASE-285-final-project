@@ -34,6 +34,16 @@ hr.position-relative {
 .doneTask>a>hr {
     background-color: currentColor;
 }
+
 .doneTask>* {
     color: grey;
+}
+
+.text-primary {
+    color: #164370 !important
+}
+
+.form-check-input:checked {
+    background-color: #133960;
+    border-color: #133960;
 }
